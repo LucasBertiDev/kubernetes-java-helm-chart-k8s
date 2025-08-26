@@ -1,0 +1,24 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "app.fullname" . }}
+  labels:
+    release: prometheus-k8s
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  namespaceSelector:
+    matchNames: 
+        - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: {{ .Values.serviceMonitor.metricsPortName }}
+      path: {{ .Values.serviceMonitor.metricsPath }}
+      interval: {{ .Values.serviceMonitor.scrapingInterval }}
+      {{- with .Values.serviceMonitor.metricRelabelings }}
+      metricRelabelings:
+          {{- toYaml . | nindent 10 }}
+      {{- end }}
+{{- end }}

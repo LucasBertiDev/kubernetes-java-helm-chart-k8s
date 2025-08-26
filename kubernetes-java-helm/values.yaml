@@ -1,0 +1,118 @@
+serviceMonitor:
+  enabled: true
+  metricsPortName: http
+  metricsPath: /actuator/prometheus 
+  scrapingInterval: 30s
+  metricRelabelings:
+    - action: replace
+      sourceLabels: [__name__]
+      regex: "jvm_classes_loaded_classes(.*)"
+      targetLabel: __name__
+      replacement: "jvm_classes_loaded${1}"
+    - action: replace
+      sourceLabels: [__name__]
+      regex: "tomcat_threads_current_threads(.*)"
+      targetLabel: __name__
+      replacement: "tomcat_threads_current${1}"
+    - action: replace
+      sourceLabels: [__name__]
+      regex: "tomcat_threads_busy_threads(.*)"
+      targetLabel: __name__
+      replacement: "tomcat_threads_busy${1}"
+    - action: replace
+      sourceLabels: [__name__]
+      regex: "jvm_classes_unloaded_classes_total(.*)"
+      targetLabel: __name__
+      replacement: "jvm_classes_unloaded_total${1}"
+    - action: replace
+      sourceLabels: [__name__]
+      regex: "jvm_threads_peak_threads(.*)"
+      targetLabel: __name__
+      replacement: "jvm_threads_peak${1}"
+    - action: replace
+      sourceLabels: [__name__]
+      regex: "jvm_threads_daemon_threads(.*)"
+      targetLabel: __name__
+      replacement: "jvm_threads_daemon${1}"
+    - action: replace
+      sourceLabels: [__name__]
+      regex: "jvm_threads_live_threads(.*)"
+      targetLabel: __name__
+      replacement: "jvm_threads_live${1}"
+
+replicaCount: 1
+
+image:
+  repository: lucasberti/contas
+  pullPolicy: Always
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {
+#  linkerd.io/inject: enabled
+}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 8080
+
+resources:
+  requests:
+    cpu: 1
+    memory: 256M
+  limits:
+    cpu: 1.5
+    memory: 512M
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+postgresql:
+  configmapName: "postgresql"
+  secretName: "postgresql"
+  secretKey: "password"
+
+envFrom:
+  - configMapRef:
+      name: "postgresql"
+env:
+  - name: "DB_PASSWORD"
+    valueFrom:
+      secretKeyRef:
+          name: "postgresql"
+          key: "password"
+  - name: "JAVA_OPTIONS"
+    value: "-Dspring.profiles.active="
+
+livenessProbe:
+  initialDelaySeconds: 15
+  httpGet:
+    path: /actuator/health
+    port: http
+readinessProbe:
+  initialDelaySeconds: 15
+  httpGet:
+    path: /actuator/health
+    port: http
