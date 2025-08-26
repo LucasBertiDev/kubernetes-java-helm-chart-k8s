@@ -56,9 +56,10 @@ serviceAccount:
   annotations: {}
   name: ""
 
-podAnnotations: {
-#  linkerd.io/inject: enabled
-}
+linkerd:
+  enabled: false
+
+podAnnotations: {}
 
 podSecurityContext: {}
 
@@ -86,25 +87,23 @@ autoscaling:
 nodeSelector: {}
 
 tolerations: []
-
 affinity: {}
 
-postgresql:
-  configmapName: "postgresql"
-  secretName: "postgresql"
-  secretKey: "password"
 
-envFrom:
-  - configMapRef:
-      name: "postgresql"
-env:
-  - name: "DB_PASSWORD"
-    valueFrom:
-      secretKeyRef:
-          name: "postgresql"
-          key: "password"
-  - name: "JAVA_OPTIONS"
-    value: "-Dspring.profiles.active="
+envFrom: {}
+  # Variáveis de ambientes externas
+
+  # - configMapRef:
+  #     name: "databasecm"
+env: {}
+  # Váriavéis de ambientes personalizadas
+  # - name: "DB_PASSWORD"
+  #   valueFrom:
+  #     secretKeyRef:
+  #         name: "secret"
+  #         key: "password"
+  # - name: "JAVA_OPTIONS"
+  #   value: "-Dspring.profiles.active="
 
 livenessProbe:
   initialDelaySeconds: 15

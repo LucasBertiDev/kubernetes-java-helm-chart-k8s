@@ -16,6 +16,9 @@ spec:
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
+        {{- if .Values.linkerd.enabled}}
+        linkerd.io/inject: enabled        
+        {{- end }}
       {{- end }}
       labels:
         {{- include "app.selectorLabels" . | nindent 8 }}
