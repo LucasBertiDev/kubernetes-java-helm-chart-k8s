@@ -43,7 +43,7 @@ serviceMonitor:
 replicaCount: 1
 
 image:
-  repository: lucasberti/contas
+  repository: lucasberti/teste
   pullPolicy: Always
   tag: ""
 
