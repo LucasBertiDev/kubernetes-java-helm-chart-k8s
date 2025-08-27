@@ -1,142 +1,610 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/values.schema.json",
+  "title": "Helm Values Schema",
   "type": "object",
-  "additionalProperties": false,
+  "additionalProperties": true,
+  "$defs": {
+    "EnvVar": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Nome da variável."
+        },
+        "value": {
+          "type": "string",
+          "description": "Valor literal (mutuamente exclusivo com valueFrom)."
+        },
+        "valueFrom": {
+          "$ref": "#/$defs/EnvVarSource"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "value"
+          ]
+        },
+        {
+          "required": [
+            "valueFrom"
+          ]
+        }
+      ],
+      "not": {
+        "required": [
+          "value",
+          "valueFrom"
+        ]
+      }
+    },
+    "EnvVarSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "configMapKeyRef": {
+          "$ref": "#/$defs/ConfigMapKeySelector"
+        },
+        "secretKeyRef": {
+          "$ref": "#/$defs/SecretKeySelector"
+        },
+        "fieldRef": {
+          "$ref": "#/$defs/ObjectFieldSelector"
+        },
+        "resourceFieldRef": {
+          "$ref": "#/$defs/ResourceFieldSelector"
+        }
+      }
+    },
+    "EnvFromSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "configMapRef": {
+          "$ref": "#/$defs/ConfigMapEnvSource"
+        },
+        "secretRef": {
+          "$ref": "#/$defs/SecretEnvSource"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Prefixo a ser adicionado aos nomes das variáveis."
+        }
+      }
+    },
+    "ConfigMapEnvSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Nome do ConfigMap."
+        },
+        "optional": {
+          "type": "boolean"
+        }
+      }
+    },
+    "SecretEnvSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Nome do Secret."
+        },
+        "optional": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ConfigMapKeySelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Nome do ConfigMap."
+        },
+        "key": {
+          "type": "string",
+          "description": "Chave dentro do ConfigMap."
+        },
+        "optional": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "key"
+      ]
+    },
+    "SecretKeySelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Nome do Secret."
+        },
+        "key": {
+          "type": "string",
+          "description": "Chave dentro do Secret."
+        },
+        "optional": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "key"
+      ]
+    },
+    "ObjectFieldSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "apiVersion": {
+          "type": "string",
+          "default": "v1"
+        },
+        "fieldPath": {
+          "type": "string",
+          "description": "Ex.: metadata.name, metadata.namespace."
+        }
+      },
+      "required": [
+        "fieldPath"
+      ]
+    },
+    "ResourceFieldSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "containerName": {
+          "type": "string"
+        },
+        "resource": {
+          "type": "string",
+          "description": "cpu|memory (limits/requests), ex.: limits.cpu"
+        },
+        "divisor": {
+          "type": "string",
+          "description": "Ex.: 1m, 1Mi, 1Gi"
+        }
+      },
+      "required": [
+        "resource"
+      ]
+    }
+  },
   "properties": {
     "serviceMonitor": {
       "type": "object",
+      "description": "Configurações do ServiceMonitor (Prometheus Operator).",
+      "default": {},
       "properties": {
-        "enabled": {"type": "boolean"},
-        "metricsPortName": {"type": "string"},
-        "metricsPath": {"type": "string"},
-        "scrapingInterval": {"type": "string"},
+        "enabled": {
+          "type": "boolean",
+          "description": "Habilita a criação do ServiceMonitor.",
+          "default": true
+        },
+        "metricsPortName": {
+          "type": "string",
+          "description": "Nome da porta (Service/Container) onde as métricas expõem HTTP.",
+          "default": "http"
+        },
+        "metricsPath": {
+          "type": "string",
+          "description": "Caminho HTTP para scraping.",
+          "default": "/actuator/prometheus"
+        },
+        "scrapingInterval": {
+          "type": "string",
+          "description": "Intervalo de scrape (Prometheus duration).",
+          "pattern": "^[0-9]+(ms|s|m|h)$",
+          "default": "30s"
+        },
         "metricRelabelings": {
           "type": "array",
+          "description": "Regras de metricRelabelings aplicadas pelo Prometheus Operator.",
           "items": {
             "type": "object",
+            "additionalProperties": false,
             "properties": {
-              "action": {"type": "string"},
-              "sourceLabels": {"type": "array", "items": {"type": "string"}},
-              "regex": {"type": "string"},
-              "targetLabel": {"type": "string"},
-              "replacement": {"type": "string"}
+              "action": {
+                "type": "string",
+                "description": "Ação de relabeling.",
+                "enum": [
+                  "replace",
+                  "keep",
+                  "drop",
+                  "hashmod",
+                  "labelmap",
+                  "labeldrop",
+                  "labelkeep"
+                ],
+                "default": "replace"
+              },
+              "sourceLabels": {
+                "type": "array",
+                "description": "Labels de origem (ex.: __name__).",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "regex": {
+                "type": "string",
+                "description": "Regex para casar o valor concatenado de sourceLabels."
+              },
+              "targetLabel": {
+                "type": "string",
+                "description": "Label de destino a ser escrito (ex.: __name__)."
+              },
+              "replacement": {
+                "type": "string",
+                "description": "Valor para substituição quando o regex casar."
+              }
             },
-            "required": ["action", "sourceLabels", "regex", "targetLabel", "replacement"]
-          }
+            "required": [
+              "action"
+            ]
+          },
+          "default": []
         }
-      },
-      "required": ["enabled", "metricsPortName", "metricsPath", "scrapingInterval"]
+      }
     },
-    "replicaCount": {"type": "integer", "minimum": 1},
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Quantidade de réplicas do Deployment.",
+      "default": 1
+    },
     "image": {
       "type": "object",
+      "description": "Imagem do container.",
       "properties": {
-        "repository": {"type": "string"},
-        "pullPolicy": {"type": "string"},
-        "tag": {"type": "string"}
-      },
-      "required": ["repository", "pullPolicy", "tag"]
+        "repository": {
+          "type": "string",
+          "description": "Repositório da imagem.",
+          "default": "lucasberti/teste"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": [
+            "Always",
+            "IfNotPresent",
+            "Never"
+          ],
+          "description": "Pull policy da imagem.",
+          "default": "Always"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Tag da imagem (vazio usa appVersion).",
+          "default": ""
+        }
+      }
     },
     "imagePullSecrets": {
       "type": "array",
-      "items": {"type": "object"}
+      "description": "Lista de ImagePullSecrets.",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "default": []
     },
-    "nameOverride": {"type": "string"},
-    "fullnameOverride": {"type": "string"},
+    "nameOverride": {
+      "type": "string",
+      "description": "Override do nome do chart.",
+      "default": ""
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Override do nome completo (release + chart).",
+      "default": ""
+    },
     "serviceAccount": {
       "type": "object",
+      "description": "ServiceAccount para o pod.",
       "properties": {
-        "create": {"type": "boolean"},
-        "annotations": {"type": "object"},
-        "name": {"type": "string"}
-      },
-      "required": ["create"]
+        "create": {
+          "type": "boolean",
+          "default": true
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {}
+        },
+        "name": {
+          "type": "string",
+          "default": ""
+        }
+      }
     },
     "linkerd": {
       "type": "object",
+      "description": "Sinalizador para injeção/integração com Linkerd.",
       "properties": {
-        "enabled": {"type": "boolean"}
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        }
       },
-      "required": ["enabled"]
+      "default": {}
     },
-    "podAnnotations": {"type": "object"},
-    "podSecurityContext": {"type": "object"},
-    "securityContext": {"type": "object"},
+    "podAnnotations": {
+      "type": "object",
+      "description": "Anotações adicionadas ao Pod.",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {}
+    },
+    "podSecurityContext": {
+      "type": "object",
+      "description": "podSecurityContext aplicado ao Pod.",
+      "default": {}
+    },
+    "securityContext": {
+      "type": "object",
+      "description": "securityContext aplicado ao container.",
+      "default": {}
+    },
     "service": {
       "type": "object",
+      "description": "Service para expor a aplicação.",
       "properties": {
-        "enabled": {"type": "boolean"},
-        "type": {"type": "string"},
-        "port": {"type": "integer"}
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "ClusterIP",
+            "NodePort",
+            "LoadBalancer"
+          ],
+          "default": "ClusterIP"
+        },
+        "port": {
+          "description": "Porta do Service.",
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": 80
+        }
       },
-      "required": ["enabled", "type", "port"]
+      "default": {}
     },
     "resources": {
       "type": "object",
+      "description": "Requests/Limits de recursos.",
       "properties": {
         "requests": {
           "type": "object",
           "properties": {
-            "cpu": {"type": ["string", "number"]},
-            "memory": {"type": "string"}
+            "cpu": {
+              "description": "CPU request (ex.: 500m, 1, 1.5).",
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]+(\\.[0-9]+)?m?$"
+                },
+                {
+                  "type": "number",
+                  "minimum": 0
+                }
+              ],
+              "default": "1"
+            },
+            "memory": {
+              "description": "Memória request (ex.: 256Mi, 512Mi, 1Gi).",
+              "type": "string",
+              "pattern": "^[0-9]+(\\.[0-9]+)?(Ki|Mi|Gi|Ti|Pi|Ei|k|M|G|T|P|E)?$",
+              "default": "256M"
+            }
           },
-          "required": ["cpu", "memory"]
+          "default": {}
         },
         "limits": {
           "type": "object",
           "properties": {
-            "cpu": {"type": ["string", "number"]},
-            "memory": {"type": "string"}
+            "cpu": {
+              "description": "CPU limit (ex.: 1500m, 2).",
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]+(\\.[0-9]+)?m?$"
+                },
+                {
+                  "type": "number",
+                  "minimum": 0
+                }
+              ],
+              "default": "1.5"
+            },
+            "memory": {
+              "description": "Memória limit (ex.: 512Mi, 1Gi).",
+              "type": "string",
+              "pattern": "^[0-9]+(\\.[0-9]+)?(Ki|Mi|Gi|Ti|Pi|Ei|k|M|G|T|P|E)?$",
+              "default": "512M"
+            }
           },
-          "required": ["cpu", "memory"]
+          "default": {}
         }
       },
-      "required": ["requests", "limits"]
+      "default": {}
     },
     "autoscaling": {
       "type": "object",
+      "description": "Configuração de HorizontalPodAutoscaler (HPA).",
       "properties": {
-        "enabled": {"type": "boolean"},
-        "minReplicas": {"type": "integer"},
-        "maxReplicas": {"type": "integer"},
-        "targetCPUUtilizationPercentage": {"type": "integer"}
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "minReplicas": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "maxReplicas": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 100
+        },
+        "targetCPUUtilizationPercentage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 80
+        }
       },
-      "required": ["enabled", "minReplicas", "maxReplicas", "targetCPUUtilizationPercentage"]
+      "default": {}
     },
-    "nodeSelector": {"type": "object"},
-    "tolerations": {"type": "array", "items": {"type": "object"}},
-    "affinity": {"type": "object"},
-    "envFrom": {"type": "object"},
-    "env": {"type": "object"},
+    "nodeSelector": {
+      "type": "object",
+      "description": "nodeSelector para o Pod.",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {}
+    },
+    "tolerations": {
+      "type": "array",
+      "description": "Tolerations para o Pod.",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "affinity": {
+      "type": "object",
+      "description": "Affinity/AntiAffinity para o Pod.",
+      "default": {}
+    },
+    "env": {
+      "description": "Variáveis de ambiente (espelha core/v1 EnvVar).",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/EnvVar"
+      },
+      "default": []
+    },
+    "envFrom": {
+      "description": "Refs em massa de ConfigMaps/Secrets (core/v1 EnvFromSource).",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/EnvFromSource"
+      },
+      "default": []
+    },
     "livenessProbe": {
       "type": "object",
+      "description": "Prova de liveness.",
       "properties": {
-        "initialDelaySeconds": {"type": "integer"},
+        "initialDelaySeconds": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 15
+        },
         "httpGet": {
           "type": "object",
           "properties": {
-            "path": {"type": "string"},
-            "port": {"type": ["string", "integer"]}
+            "path": {
+              "type": "string",
+              "default": "/actuator/health"
+            },
+            "port": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 65535
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "default": "http"
+            }
           },
-          "required": ["path", "port"]
+          "additionalProperties": true,
+          "default": {}
         }
       },
-      "required": ["initialDelaySeconds", "httpGet"]
+      "additionalProperties": true,
+      "default": {}
     },
     "readinessProbe": {
       "type": "object",
+      "description": "Prova de readiness.",
       "properties": {
-        "initialDelaySeconds": {"type": "integer"},
+        "initialDelaySeconds": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 15
+        },
         "httpGet": {
           "type": "object",
           "properties": {
-            "path": {"type": "string"},
-            "port": {"type": ["string", "integer"]}
+            "path": {
+              "type": "string",
+              "default": "/actuator/health"
+            },
+            "port": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 65535
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "default": "http"
+            }
           },
-          "required": ["path", "port"]
+          "additionalProperties": true,
+          "default": {}
         }
       },
-      "required": ["initialDelaySeconds", "httpGet"]
+      "additionalProperties": true,
+      "default": {}
     }
   }
 }
