@@ -13,11 +13,13 @@ spec:
       {{- include "app.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
+      {{- if or .Values.podAnnotations .Values.linkerd.enabled }}
       annotations:
+        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-        {{- if .Values.linkerd.enabled}}
-        linkerd.io/inject: enabled        
+        {{- end }}
+        {{- if .Values.linkerd.enabled }}
+        linkerd.io/inject: enabled
         {{- end }}
       {{- end }}
       labels:
