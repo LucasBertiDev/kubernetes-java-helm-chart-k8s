@@ -1,102 +1,174 @@
+## Metrics collection configuration
 serviceMonitor:
+  ## Whether to enable the ServiceMonitor for Prometheus
   enabled: true
+  ## Name of the port that exposes metrics
   metricsPortName: http
-  metricsPath: /actuator/prometheus 
+  ## Path to scrape metrics from
+  metricsPath: /actuator/prometheus
+  ## Interval for scraping metrics
   scrapingInterval: 30s
+  ## Relabeling configuration for metrics
   metricRelabelings:
-    - action: replace
+    - ## Relabel action
+      action: replace
+      ## Source label for the relabel
       sourceLabels: [__name__]
+      ## Regex to match metric name
       regex: "jvm_classes_loaded_classes(.*)"
+      ## Target label to replace
       targetLabel: __name__
+      ## Replacement for matched metric
       replacement: "jvm_classes_loaded${1}"
-    - action: replace
+    - ## Relabel action
+      action: replace
+      ## Source label for the relabel
       sourceLabels: [__name__]
+      ## Regex to match metric name
       regex: "tomcat_threads_current_threads(.*)"
+      ## Target label to replace
       targetLabel: __name__
+      ## Replacement for matched metric
       replacement: "tomcat_threads_current${1}"
-    - action: replace
+    - ## Relabel action
+      action: replace
+      ## Source label for the relabel
       sourceLabels: [__name__]
+      ## Regex to match metric name
       regex: "tomcat_threads_busy_threads(.*)"
+      ## Target label to replace
       targetLabel: __name__
+      ## Replacement for matched metric
       replacement: "tomcat_threads_busy${1}"
-    - action: replace
+    - ## Relabel action
+      action: replace
+      ## Source label for the relabel
       sourceLabels: [__name__]
+      ## Regex to match metric name
       regex: "jvm_classes_unloaded_classes_total(.*)"
+      ## Target label to replace
       targetLabel: __name__
+      ## Replacement for matched metric
       replacement: "jvm_classes_unloaded_total${1}"
-    - action: replace
+    - ## Relabel action
+      action: replace
+      ## Source label for the relabel
       sourceLabels: [__name__]
+      ## Regex to match metric name
       regex: "jvm_threads_peak_threads(.*)"
+      ## Target label to replace
       targetLabel: __name__
+      ## Replacement for matched metric
       replacement: "jvm_threads_peak${1}"
-    - action: replace
+    - ## Relabel action
+      action: replace
+      ## Source label for the relabel
       sourceLabels: [__name__]
+      ## Regex to match metric name
       regex: "jvm_threads_daemon_threads(.*)"
+      ## Target label to replace
       targetLabel: __name__
+      ## Replacement for matched metric
       replacement: "jvm_threads_daemon${1}"
-    - action: replace
+    - ## Relabel action
+      action: replace
+      ## Source label for the relabel
       sourceLabels: [__name__]
+      ## Regex to match metric name
       regex: "jvm_threads_live_threads(.*)"
+      ## Target label to replace
       targetLabel: __name__
+      ## Replacement for matched metric
       replacement: "jvm_threads_live${1}"
 
+## Number of replicas for the application
 replicaCount: 1
 
+## Container image information
 image:
+  ## Docker image repository
   repository: lucasberti/teste
+  ## Image pull policy
   pullPolicy: Always
+  ## Image tag
   tag: ""
 
+## Secrets for pulling images from private registries
 imagePullSecrets: []
+## Override for the chart name
 nameOverride: ""
+## Override for the fully qualified app name
 fullnameOverride: ""
 
+## Service account settings
 serviceAccount:
+  ## Specifies whether a service account should be created
   create: true
+  ## Additional annotations for the service account
   annotations: {}
+  ## Name of the service account to use
   name: ""
 
+## Linkerd integration configuration
 linkerd:
+  ## Enable Linkerd annotations
   enabled: false
 
+## Additional annotations for pods
 podAnnotations: {}
 
+## Pod security context
 podSecurityContext: {}
 
+## Container security context
 securityContext: {}
 
+## Service definition
 service:
+  ## Whether to create a service
   enabled: true
+  ## Type of service to create
   type: ClusterIP
+  ## Service port
   port: 80
 
+## Resource requests and limits for the container
 resources:
+  ## Resource requests
   requests:
     cpu: 1
     memory: 256M
+  ## Resource limits
   limits:
     cpu: 1.5
     memory: 512M
 
+## Horizontal Pod Autoscaler configuration
 autoscaling:
+  ## Enable autoscaling
   enabled: false
+  ## Minimum number of replicas
   minReplicas: 1
+  ## Maximum number of replicas
   maxReplicas: 100
+  ## Target CPU utilization percentage
   targetCPUUtilizationPercentage: 80
 
+## Node selection constraints
 nodeSelector: {}
 
+## Tolerations for node taints
 tolerations: []
+## Affinity rules
 affinity: {}
 
-
+## External environment variables
 envFrom: {}
-  # Variáveis de ambientes externas
-
   # - configMapRef:
   #     name: "databasecm"
+
+## Custom environment variables
 env: {}
-  # Váriavéis de ambientes personalizadas
   # - name: "DB_PASSWORD"
   #   valueFrom:
   #     secretKeyRef:
@@ -105,11 +177,14 @@ env: {}
   # - name: "JAVA_OPTIONS"
   #   value: "-Dspring.profiles.active="
 
+## Liveness probe configuration
 livenessProbe:
   initialDelaySeconds: 15
   httpGet:
     path: /actuator/health
     port: http
+
+## Readiness probe configuration
 readinessProbe:
   initialDelaySeconds: 15
   httpGet:
