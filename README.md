@@ -7,4 +7,4 @@ Chart padrão para aplicações helm chart
 helm package kubernetes-java-helm
 
 # 3) Enviar
-helm push ./kubernetes-java-helm-1.0.1.tgz oci://ghcr.io/lucasbertidev/charts
+helm push ./kubernetes-java-helm-1.0.5.tgz oci://ghcr.io/lucasbertidev/charts
