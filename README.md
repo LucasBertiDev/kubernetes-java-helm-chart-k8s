@@ -6,5 +6,8 @@ Chart padrão para aplicações helm chart
 # 1) Empacotar o chart
 helm package kubernetes-java-helm
 
+# 2) Verificar o chart
+helm template test-release kubernetes-java-helm
+
 # 3) Enviar
 helm push ./kubernetes-java-helm-1.0.1.tgz oci://ghcr.io/lucasbertidev/charts
