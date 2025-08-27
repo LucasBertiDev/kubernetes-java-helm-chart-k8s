@@ -4,7 +4,8 @@
   "title": "Helm Values Schema",
   "type": "object",
   "additionalProperties": true,
-  "$defs": {
+  "definitions": {
+
     "EnvVar": {
       "type": "object",
       "additionalProperties": false,
@@ -19,7 +20,7 @@
           "description": "Valor literal (mutuamente exclusivo com valueFrom)."
         },
         "valueFrom": {
-          "$ref": "#/$defs/EnvVarSource"
+          "$ref": "#/definitions/EnvVarSource"
         }
       },
       "required": [
@@ -49,16 +50,16 @@
       "additionalProperties": false,
       "properties": {
         "configMapKeyRef": {
-          "$ref": "#/$defs/ConfigMapKeySelector"
+          "$ref": "#/definitions/ConfigMapKeySelector"
         },
         "secretKeyRef": {
-          "$ref": "#/$defs/SecretKeySelector"
+          "$ref": "#/definitions/SecretKeySelector"
         },
         "fieldRef": {
-          "$ref": "#/$defs/ObjectFieldSelector"
+          "$ref": "#/definitions/ObjectFieldSelector"
         },
         "resourceFieldRef": {
-          "$ref": "#/$defs/ResourceFieldSelector"
+          "$ref": "#/definitions/ResourceFieldSelector"
         }
       }
     },
@@ -67,10 +68,10 @@
       "additionalProperties": false,
       "properties": {
         "configMapRef": {
-          "$ref": "#/$defs/ConfigMapEnvSource"
+          "$ref": "#/definitions/ConfigMapEnvSource"
         },
         "secretRef": {
-          "$ref": "#/$defs/SecretEnvSource"
+          "$ref": "#/definitions/SecretEnvSource"
         },
         "prefix": {
           "type": "string",
@@ -520,7 +521,7 @@
       "description": "Variáveis de ambiente (espelha core/v1 EnvVar).",
       "type": "array",
       "items": {
-        "$ref": "#/$defs/EnvVar"
+        "$ref": "#/definitions/EnvVar"
       },
       "default": []
     },
@@ -528,7 +529,7 @@
       "description": "Refs em massa de ConfigMaps/Secrets (core/v1 EnvFromSource).",
       "type": "array",
       "items": {
-        "$ref": "#/$defs/EnvFromSource"
+        "$ref": "#/definitions/EnvFromSource"
       },
       "default": []
     },
